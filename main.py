@@ -22,7 +22,7 @@ st.markdown("""
         --primary-dark: #003300;
         --secondary: #ffffff;
         --background: #e8f5e9;
-        --card-bg: #ffffff;
+        --card-bg: #f5fff5;  /* Lighter green for better consistency */
     }
     .stApp {
         background-color: var(--background);
@@ -124,6 +124,30 @@ st.markdown("""
         flex-direction: column;
         align-items: center;
     }
+    /* Remove white backgrounds from various components */
+    .stDataFrame {
+        background-color: var(--card-bg) !important;
+    }
+    .stDataFrame div[data-baseweb="table"] {
+        background-color: var(--card-bg) !important;
+    }
+    .stExpander {
+        background-color: var(--card-bg) !important;
+    }
+    .stExpander > details > summary {
+        background-color: var(--card-bg) !important;
+    }
+    .stExpander > details > div {
+        background-color: var(--card-bg) !important;
+    }
+    /* Consistent background for all containers */
+    .custom-container {
+        background-color: var(--card-bg);
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid var(--primary);
+        margin-bottom: 20px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -150,8 +174,7 @@ if 'shopping_list' not in st.session_state:
 # App title and description
 st.title("🌿 Green Grocery List Generator")
 st.markdown("""
-    <div style='background-color: #ffffff; padding: 15px; border-radius: 10px; 
-               border: 2px solid #1b5e20; margin-bottom: 25px;'>
+    <div class="custom-container">
     <h3 style='text-align: center; color: #1b5e20;'>Track your pantry items and generate monthly shopping lists</h3>
     </div>
 """, unsafe_allow_html=True)
@@ -204,7 +227,7 @@ with tab1:
 
     with col2:
         # Pantry data upload
-        st.markdown("<div style='background-color: #ffffff; padding: 15px; border-radius: 10px; border: 2px solid #1b5e20;'>", unsafe_allow_html=True)
+        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
         st.markdown("### Import/Export Pantry Data")
         st.markdown("Upload or download your pantry inventory")
         
@@ -223,29 +246,29 @@ with tab1:
                     st.error("CSV file must contain columns: Item, Category, Current Amount, Unit")
             except Exception as e:
                 st.error(f"Error reading file: {e}")
-        
-        # Export pantry data
-        if not st.session_state.pantry.empty:
-            csv = st.session_state.pantry.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="📥 EXPORT PANTRY AS CSV",
-                data=csv,
-                file_name=f"pantry_inventory_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime='text/csv',
-                use_container_width=True
-            )
         st.markdown("</div>", unsafe_allow_html=True)  # Close import/export container
 
     # Display current pantry
     if not st.session_state.pantry.empty:
         st.subheader("Current Pantry Inventory")
-        st.markdown("<div style='background-color: #ffffff; padding: 15px; border-radius: 10px; border: 2px solid #1b5e20;'>", unsafe_allow_html=True)
+        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
         st.dataframe(st.session_state.pantry.groupby("Category").apply(lambda x: x), height=400)
+        
+        # Add export button below the table
+        csv = st.session_state.pantry.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 EXPORT PANTRY AS CSV",
+            data=csv,
+            file_name=f"pantry_inventory_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime='text/csv',
+            use_container_width=True
+        )
+        
         st.markdown("</div>", unsafe_allow_html=True)
         
         # Option to edit/remove items
         with st.expander("EDIT OR REMOVE ITEMS", expanded=False):
-            st.markdown("<div style='background-color: #ffffff; padding: 15px; border-radius: 10px; border: 2px solid #1b5e20;'>", unsafe_allow_html=True)
+            st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
             item_to_edit = st.selectbox("Select item to edit", st.session_state.pantry["Item"])
             item_data = st.session_state.pantry[st.session_state.pantry["Item"] == item_to_edit].iloc[0]
             
@@ -279,11 +302,11 @@ with tab2:
         # Create a copy of pantry with monthly need fields
         if 'needs_df' not in st.session_state:
             st.session_state.needs_df = st.session_state.pantry.copy()
-            st.session_state.needs_df["Monthly Need"] = 0
+            st.session_state.needs_df["Monthly Need"] = 0.0  # Ensure float type
             st.session_state.needs_df["Priority"] = "Medium"
         
         # Create editable table for setting monthly needs
-        st.markdown("<div style='background-color: #ffffff; padding: 15px; border-radius: 10px; border: 2px solid #1b5e20; margin-bottom: 20px;'>", unsafe_allow_html=True)
+        st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
         st.markdown("### Set Monthly Requirements")
         
         with st.form("needs_form"):
@@ -293,8 +316,12 @@ with tab2:
                 for idx, row in group.iterrows():
                     cols = st.columns([3, 2, 2, 1])
                     item_name = cols[0].text_input("Item", value=row["Item"], key=f"item_{idx}", label_visibility="collapsed", disabled=True)
-                    monthly_need = cols[1].number_input("Monthly Need", min_value=0.0, value=row["Monthly Need"], 
+                    
+                    # Fix numeric type consistency - ensure value is float
+                    monthly_need_value = float(row["Monthly Need"]) if pd.notnull(row["Monthly Need"]) else 0.0
+                    monthly_need = cols[1].number_input("Monthly Need", min_value=0.0, value=monthly_need_value, 
                                                        step=0.5, key=f"need_{idx}", label_visibility="collapsed")
+                    
                     unit = cols[2].selectbox("Unit", ["pcs", "kg", "g", "lb", "oz", "L", "mL", "pack", "box"], 
                                            index=["pcs", "kg", "g", "lb", "oz", "L", "mL", "pack", "box"].index(row["Unit"]), 
                                            key=f"unit_{idx}", label_visibility="collapsed")
@@ -323,7 +350,7 @@ with tab2:
         # Display shopping list
         if not st.session_state.shopping_list.empty:
             st.subheader("Your Shopping List")
-            st.markdown("<div style='background-color: #ffffff; padding: 15px; border-radius: 10px; border: 2px solid #1b5e20;'>", unsafe_allow_html=True)
+            st.markdown("<div class='custom-container'>", unsafe_allow_html=True)
             
             # Group by category
             for category, group in st.session_state.shopping_list.groupby("Category"):
@@ -331,16 +358,6 @@ with tab2:
                     for _, row in group.iterrows():
                         st.markdown(f"- **{row['Item']}**: {row['Amount Needed']} {row['Unit']} "
                                     f"({'⭐' if row['Priority'] == 'High' else '📌' if row['Priority'] == 'Medium' else '🔹'}{row['Priority']})")
-            
-            # Download button
-            csv = st.session_state.shopping_list[["Item", "Category", "Amount Needed", "Unit"]].to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="📥 DOWNLOAD SHOPPING LIST AS CSV",
-                data=csv,
-                file_name=f"shopping_list_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime='text/csv',
-                use_container_width=True
-            )
             
             # Print-friendly version
             st.markdown("---")
@@ -353,6 +370,16 @@ with tab2:
             
             st.markdown(printable_list)
             st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Download button placed outside the form
+            csv = st.session_state.shopping_list[["Item", "Category", "Amount Needed", "Unit"]].to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 DOWNLOAD SHOPPING LIST AS CSV",
+                data=csv,
+                file_name=f"shopping_list_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime='text/csv',
+                use_container_width=True
+            )
         else:
             st.info("No items needed for shopping this month! 🎉")
 
