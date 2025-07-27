@@ -104,14 +104,6 @@ st.markdown("""
     .green-header {
         color: var(--primary);
     }
-    .add-item-form {
-        background-color: var(--card-bg);
-        border-radius: 10px;
-        padding: 25px;
-        border: 2px solid var(--primary);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        margin-bottom: 25px;
-    }
     .form-title {
         text-align: center;
         color: var(--primary);
@@ -189,8 +181,7 @@ with tab1:
     col1, col2 = st.columns([3, 2])
     
     with col1:
-        # Create a centered, prominent "Add New Item" section
-        st.markdown("<div class='add-item-form'>", unsafe_allow_html=True)
+        # Create a centered, prominent "Add New Item" section without the container box
         st.markdown("<div class='form-title'>➕ ADD NEW ITEM TO PANTRY</div>", unsafe_allow_html=True)
         
         with st.form("add_item_form"):
@@ -222,8 +213,6 @@ with tab1:
                     st.success(f"✅ Added {item_name} to pantry!")
                 else:
                     st.warning("Please fill in all required fields (*)")
-        
-        st.markdown("</div>", unsafe_allow_html=True)  # Close add-item-form div
 
     with col2:
         # Pantry data upload
