@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Set page configuration with green theme
 st.set_page_config(
-    page_title="Grocery List Generator",
+    page_title="Green Grocery List Generator",
     page_icon="🌿",
     layout="centered",
     initial_sidebar_state="expanded"
@@ -101,20 +101,18 @@ if 'shopping_list' not in st.session_state:
     st.session_state.shopping_list = pd.DataFrame(columns=["Item", "Category", "Amount Needed", "Unit"])
 
 # App title and description
-st.title("🌿 EcoPantry - Green Grocery List Generator")
+st.title("🌿 Green Grocery List Generator")
 st.markdown("""
     <div style='background-color: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 5px solid #2e7d32;'>
-    Reduce food waste and shop sustainably! Track your pantry items, set monthly needs, 
-    and generate eco-friendly shopping lists.
+    Track your pantry items and generate monthly shopping lists.
     </div>
 """, unsafe_allow_html=True)
 
 # Main app tabs
-tab1, tab2, tab3 = st.tabs(["🏠 My Pantry", "📋 Generate Shopping List", "📊 Insights & Tips"])
+tab1, tab2 = st.tabs(["🏠 My Pantry", "📋 Generate Shopping List"])
 
 with tab1:
     st.subheader("Manage Your Pantry Inventory")
-    st.markdown("Track what you have at home to avoid over-purchasing and reduce waste.")
     
     # Pantry management section
     col1, col2 = st.columns([3, 2])
@@ -123,7 +121,7 @@ with tab1:
         # Manual item addition form
         with st.expander("➕ Add New Item to Pantry", expanded=True):
             with st.form("add_item_form"):
-                item_name = st.text_input("Item Name*", placeholder="e.g., Organic Apples")
+                item_name = st.text_input("Item Name*", placeholder="e.g., Apples")
                 item_category = st.selectbox("Category*", CATEGORIES)
                 col1, col2 = st.columns(2)
                 current_amount = col1.number_input("Current Amount*", min_value=0.0, value=1.0, step=0.5)
@@ -204,7 +202,6 @@ with tab1:
 
 with tab2:
     st.subheader("Generate Monthly Shopping List")
-    st.markdown("Set your monthly needs and generate a sustainable shopping list")
     
     if st.session_state.pantry.empty:
         st.warning("Please add items to your pantry first in the 'My Pantry' tab.")
@@ -253,8 +250,8 @@ with tab2:
         
         # Display shopping list
         if not st.session_state.shopping_list.empty:
-            st.subheader("Your Eco-Friendly Shopping List")
-            st.markdown("Items grouped by category for efficient shopping:")
+            st.subheader("Your Shopping List")
+            st.markdown("Items grouped by category:")
             
             # Group by category
             for category, group in st.session_state.shopping_list.groupby("Category"):
@@ -268,7 +265,7 @@ with tab2:
             st.download_button(
                 label="📥 Download Shopping List as CSV",
                 data=csv,
-                file_name=f"eco_shopping_list_{datetime.now().strftime('%Y%m%d')}.csv",
+                file_name=f"shopping_list_{datetime.now().strftime('%Y%m%d')}.csv",
                 mime='text/csv',
                 use_container_width=True
             )
@@ -286,73 +283,10 @@ with tab2:
         else:
             st.info("No items needed for shopping this month! 🎉")
 
-with tab3:
-    st.subheader("Sustainability Insights & Tips")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### 🌍 Your Environmental Impact")
-        if not st.session_state.pantry.empty:
-            # Calculate some stats
-            total_items = len(st.session_state.pantry)
-            waste_reduction = min(100, total_items * 5)  # Fake metric for demo
-            co2_reduction = min(1000, total_items * 15)  # Fake metric for demo
-            
-            st.metric("Items Tracked", f"{total_items} items")
-            st.metric("Estimated Waste Reduction", f"{waste_reduction}%")
-            st.metric("Estimated CO₂ Reduction", f"{co2_reduction} kg/year")
-            
-            # Progress bars
-            st.progress(waste_reduction / 100)
-            st.caption("Waste reduction progress")
-            st.progress(min(1, co2_reduction / 1000))
-            st.caption("CO₂ reduction progress")
-        else:
-            st.info("Add items to your pantry to see your environmental impact")
-    
-    with col2:
-        st.markdown("### 💡 Eco-Friendly Shopping Tips")
-        tips = [
-            "🛒 **Plan meals around what you already have** to reduce food waste",
-            "📅 **Shop with a list** to avoid impulse buys and unnecessary purchases",
-            "🌱 **Choose seasonal produce** for lower carbon footprint",
-            "🥦 **Buy imperfect produce** to help reduce food waste",
-            "🔄 **Bring reusable bags** and containers to the store",
-            "🚲 **Walk or bike** to the store when possible",
-            "📦 **Buy in bulk** for items you use frequently to reduce packaging",
-            "🏷️ **Check expiration dates** to ensure you can use items before they expire"
-        ]
-        
-        for tip in tips:
-            st.markdown(f"- {tip}")
-    
-    st.markdown("---")
-    st.markdown("### 📈 Food Waste Statistics")
-    st.markdown("""
-        - Approximately 1/3 of all food produced globally is wasted
-        - If food waste were a country, it would be the 3rd largest emitter of greenhouse gases
-        - The average household throws away about $1,500 worth of food each year
-        - Reducing food waste is one of the most effective ways to fight climate change
-    """)
-    
-    # Resources section
-    st.markdown("### 📚 Sustainable Living Resources")
-    resources = [
-        ["Love Food Hate Waste", "https://www.lovefoodhatewaste.com/"],
-        ["EPA Food Recovery Hierarchy", "https://www.epa.gov/sustainable-management-food/food-recovery-hierarchy"],
-        ["Zero Waste Home", "https://zerowastehome.com/"],
-        ["Seasonal Food Guide", "https://www.seasonalfoodguide.org/"]
-    ]
-    
-    for name, url in resources:
-        st.markdown(f"- [{name}]({url})")
-
 # Footer
 st.markdown("---")
 st.markdown("""
     <div class='footer'>
-        🌿 EcoPantry - Helping you shop sustainably and reduce food waste 🌎<br>
-        Made with ♻️ | Data is stored locally in your browser
+        Green Grocery List Generator | Data is stored locally in your browser
     </div>
 """, unsafe_allow_html=True)
